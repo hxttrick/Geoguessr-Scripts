@@ -71,7 +71,7 @@
             inner.style.padding = "0";
 
             const img = document.createElement("img");
-            img.src = `data:image/svg+xml;charset=utf-8,${getSvg()}`;
+            img.src = "https://github.com/hxttrick/Geoguessr-Scripts/blob/main/Re-Random/re-random.js";
             img.width = 24;
             img.height = 24;
 
