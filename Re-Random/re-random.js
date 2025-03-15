@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Geoguessr Re:Random
 // @namespace    http://tampermonkey.net/
-// @version      2025-03-15
+// @version      2025-03-16
 // @description  Bring back random maps!
 // @author       Hxttrick
 // @match        https://www.geoguessr.com/maps/*
@@ -22,27 +22,28 @@
         window.location.href = `https://www.geoguessr.com/maps/${getMapId()}`
     }
     else {
+
+        fetch("https://raw.githubusercontent.com/hxttrick/Geoguessr-Scripts/refs/heads/2025-03-16/Re-Random/styles.css")
+        .then(response => response.text())
+        .then(cssText => {
+            const styleEl = document.createElement('style');
+            styleEl.innerText = cssText;
+            document.head.appendChild(styleEl);
+        })
+
         window.addEventListener("load", () => {
             const ogBtn = document.querySelector(".back-button_round__7idLQ");
             
             const newBtn = ogBtn.cloneNode(true);
-            newBtn.addEventListener("click", () => {
-                window.location.href = "https://www.geoguessr.com/maps/random";
-            });
-            newBtn.style.display = "flex";
-            newBtn.style.alignItems = "stretch";
-            newBtn.style.marginLeft = ".5rem";
+            newBtn.addEventListener("click", () => window.location.href = "https://www.geoguessr.com/maps/random");
+            newBtn.classList.add("rr-btn");
 
             const inner = newBtn.firstElementChild;
             inner.textContent = "";
-            inner.style.flex = "1";
-            inner.style.aspectRatio = "1";
-            inner.style.display = "grid";
-            inner.style.justifyContent = "center";
-            inner.style.padding = "0";
+            inner.classList.add("rr-btn-inner");
 
             const img = document.createElement("img");
-            img.src = "https://raw.githubusercontent.com/hxttrick/Geoguessr-Scripts/98f1feaa999c67871d6dca4d9b2fe17b6c3367fd/Re-Random/dice.svg";
+            img.src = "https://raw.githubusercontent.com/hxttrick/Geoguessr-Scripts/refs/heads/2025-03-16/Re-Random/dice.svg";
             img.width = 24;
             img.height = 24;
 

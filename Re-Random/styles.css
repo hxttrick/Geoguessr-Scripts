@@ -1,0 +1,13 @@
+.rr-btn{
+    display: flex;
+    align-items: stretch;
+    margin-left: .5rem;
+}
+
+.rr-btn-inner {
+    flex: 1;
+    aspect-ratio: 1;
+    display: grid;
+    justify-content: center;
+    padding: 0;
+}
