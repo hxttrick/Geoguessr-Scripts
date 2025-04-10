@@ -10,7 +10,7 @@
 ### Data Path
 - Enter the path of the data you want to retrieve separated by periods `.`.
   <br>
-  Please refer to the example on the bottom of the page for examples.
+  Please refer to [the example below](#api-example") for examples.
 
 ### Update Interval
 - Enter the interval, in seconds, between each update.
@@ -37,7 +37,7 @@ Some example `Data Path` values include:
 - Retrieve average guess distance in km: `averageDistance.meters.amount`
 - Retrieve highest country streak: `streakRecords.0.value.maxStreak`
 
-```json
+```json5
 // API RESPONSE:
 {
   "gamesPlayed": 64968,
