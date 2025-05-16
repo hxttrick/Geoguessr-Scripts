@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Re:Random 2
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       You
 // @match        *://*.geoguessr.com/*
@@ -13,7 +13,35 @@
     'use strict';
 
     window.addEventListener('load', () => build(event.target.URL));
-    window.navigation.addEventListener("navigate", event => build(event.destination.url))
+    if ('navigation'in window) {
+        navigation.addEventListener('navigate', event => {
+            build(event.destination.url);
+        });
+    } else {
+        // Fallback for Firefox/Safari using History API + popstate
+        let currentPath = location.pathname;
+
+        function handlePathChange() {
+            const newPath = location.pathname;
+            if (newPath !== currentPath) {
+                currentPath = newPath;
+                build(location.href);
+            }
+        }
+
+        // Observe browser back/forward buttons
+        window.addEventListener('popstate', handlePathChange);
+
+        // Monkey-patch pushState and replaceState
+        ['pushState', 'replaceState'].forEach(fn => {
+            const original = history[fn];
+            history[fn] = function (...args) {
+                const result = original.apply(this, args);
+                handlePathChange(); // trigger on in-app nav
+                return result;
+            };
+        });
+    }
 
     function build(url) {
         document.querySelectorAll('.re-random').forEach(el => el.remove())
