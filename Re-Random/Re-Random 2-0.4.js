@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Re:Random 2
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Play a random map!
 // @author       Hxttrick
 // @match        *://*.geoguessr.com/*
@@ -17,6 +17,14 @@
 
     // Build on path change
     onPathChange(newPath => build(newPath))
+
+    // Attach keybind
+    window.addEventListener('keydown', e => {
+        if (!(new URL(window.location).pathname).startsWith('/maps/')) return
+        if (e.key.toLowerCase() !== 'r') return
+        onRandomClick();
+    });
+
 
     // - - - - - Helper functions - - - - - //
     function onPathChange(callback) {
@@ -53,7 +61,7 @@
                     requestAnimationFrame(() => resolve(element))
                 }
             }, 100)
-        });
+            });
     }
 
     // Build the correct buttons depending on current path
