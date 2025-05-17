@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Re:Random 2
 // @namespace    http://tampermonkey.net/
-// @version      0.2
-// @description  try to take over the world!
-// @author       You
+// @version      0.3
+// @description  Play a random map!
+// @author       Hxttrick
 // @match        *://*.geoguessr.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geoguessr.com
 // @grant        none
@@ -12,40 +12,54 @@
 (function() {
     'use strict';
 
-    window.addEventListener('load', () => build(event.target.URL));
-    if ('navigation'in window) {
-        navigation.addEventListener('navigate', event => {
-            build(event.destination.url);
-        });
-    } else {
-        // Fallback for Firefox/Safari using History API + popstate
+    // Build on refresh
+    build(new URL(window.location).pathname)
+
+    // Build on path change
+    onPathChange(newPath => build(newPath))
+
+    // - - - - - Helper functions - - - - - //
+    function onPathChange(callback) {
         let currentPath = location.pathname;
 
         function handlePathChange() {
             const newPath = location.pathname;
             if (newPath !== currentPath) {
-                currentPath = newPath;
-                build(location.href);
+                currentPath = newPath
+                callback(newPath)
             }
         }
 
-        // Observe browser back/forward buttons
+        // Listen for browser navigation (back/forward)
         window.addEventListener('popstate', handlePathChange);
 
         // Monkey-patch pushState and replaceState
         ['pushState', 'replaceState'].forEach(fn => {
-            const original = history[fn];
+            const original = history[fn]
             history[fn] = function (...args) {
-                const result = original.apply(this, args);
-                handlePathChange(); // trigger on in-app nav
-                return result;
+                const result = original.apply(this, args)
+                handlePathChange() // detect path change after state change
+                return result
             };
         });
     }
 
-    function build(url) {
+    function pollForElm(selector) {
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                const element = document.querySelector(selector)
+                if (element) {
+                    clearInterval(interval);
+                    requestAnimationFrame(() => resolve(element))
+                }
+            }, 100)
+        });
+    }
+
+    // Build the correct buttons depending on current path
+    function build(path) {
+        console.log(path)
         document.querySelectorAll('.re-random').forEach(el => el.remove())
-        const path = url.split('geoguessr.com')[1].split('?')[0]
         if (path == '/maps') {
             buildMapsMenu()
             return
@@ -56,28 +70,9 @@
         }
     }
 
-    function waitForElm(selector) {
-        return new Promise(resolve => {
-            if (document.querySelector(selector)) {
-                return resolve(document.querySelector(selector));
-            }
-
-            const observer = new MutationObserver(mutations => {
-                if (document.querySelector(selector)) {
-                    observer.disconnect();
-                    resolve(document.querySelector(selector));
-                }
-            });
-
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-    }
-
+    // Classic maps menu
     async function buildMapsMenu() {
-        const nav = await waitForElm('.tag-nav_categoryMenu__AUXWy')
+        const nav = await pollForElm('.tag-nav_categoryMenu__AUXWy')
         const btn = nav.querySelector('.tag-nav_menuItem__KbKxV').cloneNode(true)
         const divider = nav.previousElementSibling.cloneNode(true)
 
@@ -92,10 +87,12 @@
         btn.before(divider)
     }
 
+    // Inside a community map
     async function buildMap() {
-        const nav = await waitForElm('.community-map-page_topActions__X4C20')
-        const wrapper = nav.firstChild
-        const btn = wrapper.firstChild.cloneNode(true)
+        let selector = '.community-map-page_topActions__X4C20'
+        const nav = await pollForElm(selector)
+        const wrapper = await pollForElm(selector += '> div')
+        const btn = (await pollForElm(selector += '> div')).cloneNode(true)
 
         wrapper.style.display = 'flex'
         wrapper.style.gap = '1em'
@@ -107,8 +104,8 @@
         wrapper.appendChild(btn)
     }
 
+    // Random button functionality
     async function onRandomClick(event) {
-
         const response = await fetch('/api/v3/social/maps/browse/random', { credentials: 'include' })
         const payload = await response.json()
 
