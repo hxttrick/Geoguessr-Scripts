@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Re:Random 2
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Play a random map!
 // @author       Hxttrick
 // @match        *://*.geoguessr.com/*
@@ -22,6 +22,7 @@
     window.addEventListener('keydown', e => {
         if (!(new URL(window.location).pathname).startsWith('/maps/')) return
         if (e.key.toLowerCase() !== 'r') return
+        if (e.target.tagName === 'INPUT') return
         onRandomClick();
     });
 
@@ -68,7 +69,7 @@
     function build(path) {
         console.log(path)
         document.querySelectorAll('.re-random').forEach(el => el.remove())
-        if (path == '/maps') {
+        if (path == '/maps' || path == '/maps/community') {
             buildMapsMenu()
             return
         }
@@ -97,17 +98,20 @@
 
     // Inside a community map
     async function buildMap() {
-        let selector = '.community-map-page_topActions__X4C20'
+        let selector = '.community-map-page_topActions__tZAtm'
         const nav = await pollForElm(selector)
         const wrapper = await pollForElm(selector += '> div')
         const btn = (await pollForElm(selector += '> div')).cloneNode(true)
+        const svg = btn.querySelector('img')
 
         wrapper.style.display = 'flex'
         wrapper.style.gap = '1em'
 
         btn.classList.value = 're-random'
-        btn.querySelector('img').src = 'https://raw.githubusercontent.com/hxttrick/Geoguessr-Scripts/52dadc5a9acaccc02fadc776d3c1b6818a27ab18/Re-Random/dice.svg'
         btn.addEventListener('click', onRandomClick)
+
+        svg.src = 'https://raw.githubusercontent.com/hxttrick/Geoguessr-Scripts/refs/heads/main/Re-Random/dice.svg'
+        svg.style.scale = '1.1'
 
         wrapper.appendChild(btn)
     }
